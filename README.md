@@ -1,0 +1,1 @@
+# Repositório base para utilização de Laravel 10 com Docker
