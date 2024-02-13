@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile 
+    restart: unless-stopped 
+    working_dir: /var/www
+    volumes: 
+      - ./:/var/www 
+    depends_on:
+      - redis
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped 
+    ports:
+      - "8989:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www 
+      - ./docker/nginx/:/etc/nginx/conf.d/
+      - ./docker/certs/:/etc/nginx/certs/
+
+  postgresdb:
+    image: postgres
+    restart: unless-stopped 
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-username}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
+      POSTGRES_DB: ${DB_DATABASE:-laravel}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - POSTGRES_VOLUME:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  POSTGRES_VOLUME:
